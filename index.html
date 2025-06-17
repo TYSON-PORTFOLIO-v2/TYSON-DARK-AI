@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<meta http-equiv="content-type" content="text/html;charset=UTF-8" /> 
+<head>
+    <link rel="stylesheet" href="../all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TYSON DARK AI</title>
+    <style>
+        /* Splash Screen Styles */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        
+        #splash-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        /* Main Chat Container - Initially Hidden */
+        #main-container {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background-color: #0f0f0f;
+        }
+
+        :root {
+            --primary: #6D28D9;
+            --bg: #0f0f0f;
+            --card: #111;
+            --text: #00ff00;
+            --text-light: #6B7280;
+            --user-bubble: #002200;
+            --bot-bubble: #001100;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 420px;
+            height: 90vh;
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #00ff00;
+        }
+
+        .header {
+            padding: 18px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 1px solid #00aa00;
+            background: var(--card);
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+        }
+
+        .developer {
+            font-size: 12px;
+            color: #00ff00;
+        }
+
+        .social-links a {
+            color: #00ff00;
+            text-decoration: none;
+            margin-left: 10px;
+            font-size: 12px;
+        }
+
+        .chatbox {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scroll-behavior: smooth;
+            background-color: rgba(0, 0, 0, 0.7);
+            background-image: 
+                linear-gradient(rgba(0, 255, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .chat-message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: 15px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: messageAppear 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            border: 1px solid;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: var(--user-bubble);
+            color: #00ff00;
+            border-bottom-right-radius: 4px;
+            animation-delay: 0.1s;
+            border-color: #00aa00;
+        }
+
+        .assistant-message {
+            align-self: flex-start;
+            background: var(--bot-bubble);
+            color: #00ff00;
+            border-bottom-left-radius: 4px;
+            animation-delay: 0.2s;
+            border-color: #00ff00;
+        }
+
+        /* Code Block Styling */
+        .code-block {
+            background-color: #000;
+            border: 1px solid #00aa00;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            margin: 0;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #001100;
+            color: #00ff00;
+            border: 1px solid #00aa00;
+            border-radius: 3px;
+            padding: 3px 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .input-area {
+            padding: 12px;
+            background: var(--card);
+            border-top: 1px solid #00aa00;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #00aa00;
+            border-radius: 12px;
+            background: #001100;
+            font-size: 15px;
+            transition: all 0.3s;
+            color: #00ff00;
+        }
+
+        .input-area input:focus {
+            outline: none;
+            border-color: #00ff00;
+            box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.2);
+        }
+
+        .send-btn {
+            background: #00aa00;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            color: #000;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .voice-btn {
+            background: #005500;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            color: #00ff00;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .voice-btn.listening {
+            background: #ff0000;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+        }
+
+        .send-btn:hover {
+            background: #00ff00;
+        }
+
+        .watermark {
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+            color: var(--text-light);
+            border-top: 1px solid #00aa00;
+        }
+
+        @keyframes messageAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chatbox::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chatbox::-webkit-scrollbar-thumb {
+            background: #00aa00;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <img id="splash-image" src="logo.png" alt="TYSON DARK AI">
+    </div>
+    
+    <!-- Main Chat Container -->
+    <div id="main-container">
+        <div class="container">
+            <div class="header">
+                <div class="logo">TYSON DARK AI</div>
+                <div class="developer">@TYSON_OWNER</div>
+                <div class="social-links">
+                    <a href="../external.html?link=https://t.me/+vdpZi-WZKAoxZDhl" target="_blank"><i class="fab fa-telegram"></i></a>
+                    <a href="../external.html?link=https://t.me/+vdpZi-WZKAoxZDhl" target="_blank"><i class="fas fa-users"></i></a>
+                </div>
+            </div>
+            <div id="chatbox" class="chatbox"></div>
+            <div class="input-area">
+                <button id="voiceButton" class="voice-btn" title="Voice Input">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <input id="chatInput" type="text" placeholder="Type or speak your message" />
+                <button id="sendButton" class="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="watermark"> 👑 DEVELOPER  @TYSON_OWNER</div>
+        </div>
+    </div>
+
+    <!-- Audio Element for Responses Only -->
+    <audio id="response-audio"></audio>
+
+    <script>
+        // DOM Elements
+        const splashScreen = document.getElementById('splash-screen');
+        const mainContainer = document.getElementById('main-container');
+        const sendButton = document.getElementById("sendButton");
+        const voiceButton = document.getElementById("voiceButton");
+        const chatInput = document.getElementById('chatInput');
+        const chatbox = document.getElementById('chatbox');
+        const responseAudio = document.getElementById('response-audio');
+
+        // Speech Recognition Setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+        
+        if (recognition) {
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                voiceButton.classList.add('listening');
+            };
+
+            recognition.onend = () => {
+                voiceButton.classList.remove('listening');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                chatInput.value = transcript;
+                sendButton.click(); // Automatically send after speech
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error', event.error);
+                displayMessage('Voice input error: ' + event.error, false);
+                voiceButton.classList.remove('listening');
+            };
+        } else {
+            voiceButton.style.display = 'none';
+            console.warn('Speech recognition not supported');
+        }
+
+        // Text-to-Speech Function with increased volume
+        function speak(text) {
+            // Cancel any ongoing speech
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.volume = 1.0; // Maximum volume (1.0)
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            
+            // Get all available voices
+            const voices = window.speechSynthesis.getVoices();
+            
+            // Try to find a clear, natural-sounding voice
+            const preferredVoices = [
+                'Google UK English Male',
+                'Microsoft David - English (United States)',
+                'Alex'
+            ];
+            
+            // Set the best available voice
+            for (const voiceName of preferredVoices) {
+                const voice = voices.find(v => v.name === voiceName);
+                if (voice) {
+                    utterance.voice = voice;
+                    break;
+                }
+            }
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Developer questions check
+        const developerQuestions = [
+            "who developed you",
+            "who created you",
+            "who made you",
+            "who is your developer",
+            "who is your creator",
+            "are you developed by",
+            "@TYSON_OWNER",
+            "@TYSON_OWNER"
+        ];
+
+        // Event Listeners
+        splashScreen.addEventListener('click', () => {
+            splashScreen.style.display = 'none';
+            mainContainer.style.display = 'flex';
+        });
+
+        voiceButton.addEventListener('click', () => {
+            if (recognition) {
+                if (voiceButton.classList.contains('listening')) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            } else {
+                displayMessage('Voice input not supported in your browser', false);
+            }
+        });
+
+        async function displayMessage(message, isUser) {
+            const msgElem = document.createElement('div');
+            
+            // Format code blocks
+            const formattedMessage = formatCodeBlocks(message);
+            
+            msgElem.innerHTML = isUser 
+                ? formattedMessage 
+                : `<div class="terminal-line">${formattedMessage}</div>`;
+                
+            msgElem.className = `chat-message ${isUser ? 'user-message' : 'assistant-message'}`;
+            chatbox.appendChild(msgElem);
+            chatbox.scrollTop = chatbox.scrollHeight;
+
+            // Speak the response if it's from the assistant
+            if (!isUser && 'speechSynthesis' in window) {
+                // Wait a brief moment before speaking to allow the message to display
+                setTimeout(() => {
+                    speak(message.replace(/```[\s\S]*?```/g, 'code block')); // Skip code blocks in speech
+                }, 300);
+            }
+        }
+
+        // Function to check if question is about developer
+        function isDeveloperQuestion(question) {
+            const lowerQuestion = question.toLowerCase();
+            return developerQuestions.some(q => lowerQuestion.includes(q));
+        }
+
+        // Function to format code blocks
+        function formatCodeBlocks(text) {
+            // Handle markdown code blocks
+            return text.replace(/```([a-z]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+                const id = 'code-' + Math.random().toString(36).substr(2, 9);
+                return `
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard('${id}')">Copy</button>
+                        <pre id="${id}">${code.trim()}</pre>
+                    </div>
+                `;
+            });
+        }
+
+        // Function to copy code to clipboard
+        window.copyToClipboard = function(id) {
+            const codeElement = document.getElementById(id);
+            const range = document.createRange();
+            range.selectNode(codeElement);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            
+            // Show copied notification
+            const button = codeElement.parentElement.querySelector('.copy-button');
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            setTimeout(() => {
+                button.textContent = originalText;
+            }, 2000);
+        };
+
+        async function callApi(apiUrl, prompt) {
+            chatInput.value = "Typing...";
+            chatInput.disabled = true;
+            sendButton.disabled = true;
+            voiceButton.disabled = true;
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({prompt})
+            });
+
+            chatInput.value = "";
+            chatInput.disabled = false;
+            sendButton.disabled = false;
+            voiceButton.disabled = false;
+            chatInput.focus();
+            return response.json();
+        }
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        sendButton.addEventListener('click', async () => {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            displayMessage(message, true);
+            chatInput.value = '';
+
+            // Check for developer questions first
+            if (isDeveloperQuestion(message)) {
+                const devResponse = "I was developed by @TYSON_OWNER. You can find my creator on Telegram @TYSON_OWNER or join the ERROR Army community!";
+                displayMessage(devResponse, false);
+                return;
+            }
+
+            const apiUrl = message.startsWith('/image') ? 
+                'https://backend.buildpicoapps.com/aero/run/image-generation-api?pk=v1-Z0FBQUFBQm5HUEtMSjJkakVjcF9IQ0M0VFhRQ0FmSnNDSHNYTlJSblE0UXo1Q3RBcjFPcl9YYy1OZUhteDZWekxHdWRLM1M1alNZTkJMWEhNOWd4S1NPSDBTWC12M0U2UGc9PQ==' : 
+                'https://backend.buildpicoapps.com/aero/run/llm-api?pk=v1-Z0FBQUFBQm5HUEtMSjJkakVjcF9IQ0M0VFhRQ0FmSnNDSHNYTlJSblE0UXo1Q3RBcjFPcl9YYy1OZUhteDZWekxHdWRLM1M1alNZTkJMWEhNOWd4S1NPSDBTWC12M0U2UGc9PQ==';
+
+            try {
+                const data = await callApi(apiUrl, message);
+                if (data.status === 'success') {
+                    displayMessage(data.text, false);
+                } else {
+                    displayMessage('An error occurred. Please try again.', false);
+                } 
+            } catch (error) {
+                console.error('Error:', error);
+                displayMessage('An error occurred. Please try again.', false);
+            }
+        });
+
+        // Load voices when they become available
+        if ('speechSynthesis' in window) {
+            speechSynthesis.onvoiceschanged = function() {
+                // Voices are now loaded
+            };
+        }
+
+        // Initial focus
+        chatInput.focus();
+    </script>
+</body>
+</html>
